@@ -9,8 +9,6 @@ var giphy = require('giphy-api')('DJHaPmj74hgVBdXSb0dVpmTVUASpRS3H');
 var stresstip;
 var tip;
 
-
-
 //connect to mysql database
 var con = mysql.createConnection({
   host: "localhost",
@@ -19,6 +17,8 @@ var con = mysql.createConnection({
   database: "userlog"
 });
 
+
+//sql query function
 function executeQuery(sql, cb) {
     con.query(sql, function (err, result, fields) {
         if (err) throw err;
@@ -46,6 +46,7 @@ server.post('/api/messages', connector.listen());
 
 var inMemoryStorage = new builder.MemoryBotStorage();
 
+//labels for buttons
 var DialogLabels = {
     Gad7: 'Mood checker',
     Selfhelp: 'Self Help',
@@ -71,6 +72,8 @@ var bot = new builder.UniversalBot(connector, [
         session.beginDialog('askForFeeling');
     },
 
+
+// take how the user is feeling and match to correct intent using LUIS
     function (session, results) {
       builder.LuisRecognizer.recognize(results.response, LuisModelUrl,
     function (err, intents, entities) {
@@ -95,8 +98,11 @@ var bot = new builder.UniversalBot(connector, [
          }
        }
         )
+
+        //insert users mood into database
       var userIdentity = session.message.address.user.id;
               session.userData.Feeling = results.response;
+                session.send(`You're feeling ${session.userData.Feeling}`);
               console.log(session.userData.Feeling + " - feeling ");
                executeQuery("insert into users(feeling, userID) values ('"+session.userData.Feeling+"', '"+session.message.address.user.id+"')", function(result){
 console.log(result);
@@ -126,7 +132,7 @@ bot.dialog('askForFeeling', [
   ]);
 
 
-
+// if the user types something the bot cannot understand - reaches the none intent
 bot.dialog('none',
 [
   function (session) {
@@ -140,7 +146,7 @@ bot.dialog('none',
 
   bot.dialog('sad', [
       function (session) {
-              session.send(`You're feeling ${session.userData.Feeling}`);
+
               session.send({
               attachments: [
                            {
@@ -158,7 +164,7 @@ bot.dialog('none',
 
       bot.dialog('happy', [
           function (session) {
-               session.send(`You're feeling ${session.userData.Feeling}`);
+
                session.send({
                attachments: [
                             {
@@ -174,11 +180,8 @@ bot.dialog('none',
           }
         ]);
 
-
-
           bot.dialog('okay', [
               function (session) {
-                     session.send(`You're feeling ${session.userData.Feeling}`);
                      session.send({
                      attachments: [
                                   {
@@ -212,17 +215,6 @@ bot.dialog('choice', [
         }
 
     );
-
-    /*
-
-  builder.Prompts.choice(
-      session,
-      'You can press',
-      [DialogLabels.Selfhelp, DialogLabels.Gad7],
-      {
-          maxRetries: 3,
-          retryPrompt: 'Not a valid option'
-      }); */
 },
 
 
@@ -241,6 +233,7 @@ function (session, result) {
 .reloadAction('startOver', 'Ok, starting over.', {
     matches: /^start over$/i
   });
+
 
 bot.dialog('selfhelp', [
         function (session) {
@@ -272,106 +265,11 @@ bot.dialog('selfhelp', [
 
       ]);
 
-      bot.dialog('sleep', [
-          function (session) {
-
-        //    var sleepcontent = "select content from copingstrategies where copingName = 'Sleep'";
-            session.send("To sleep better, maintain a routine, avoid alcohol and other stimulants late at night.");
-        session.send("It also helps to avoid a heavy meal late at night.");
-           session.send({
-           attachments: [
-                        {
-                           contentType: 'image/gif',
-                           contentUrl: 'https://media.giphy.com/media/ZLxRWG0vhzpiE/giphy.gif',
-                           name: 'Sleeping'
-                        }
-                      ]
-                    });
-
-          }
-        ]);
-
-        bot.dialog('anxiety', [
-            function (session) {
-              session.send("Anxiety involves a frequent unpleasant feeling typically associated with uneasiness, apprehension and worry. It has physical, emotional and behavioural effects.");
-              session.send("Light physical exercise such as a short stroll can tackle many of the symptoms of anxiety");
-             session.send("Breathing exercises can be helpful and by relaxing both body and mind the cycle of stress and worry can be broken..");
-             session.send({
-             attachments: [
-                          {
-                             contentType: 'image/gif',
-                             contentUrl: 'https://media.giphy.com/media/3oEduR6BxaE9undCIU/giphy.gif',
-                             name: 'Anxiety'
-                          }
-                        ]
-                      });
-
-            }
-          ]);
-
-
-function getStresstip(callback)
-{
-
-executeQuery("SELECT content FROM copingstrategies WHERE category = 'stress' AND type ='tip' ORDER BY RAND() LIMIT 1", function (err, result) {
-  if (err)
-             callback(err,null);
-         else
-             callback(null,result[0].hexcode);
-                     });
-
-
-}
-
-
-
-          bot.dialog('stress', [
-              function (session) {
-                getStresstip(function(data){
-                            // code to execute on data retrieval
-
-stresstip = data[0].content;
-
-
-console.log(stresstip);
-
-session.send(stresstip);
-
-// console.log(tip);
-// session.send(stresstip);
-
-                });
-
- /*
-                session.send("Stress can have a damaging effect on our bodies, our emotions and on how we think.");
-                session.send("Mindfulness can help with the effects of stress.");
-               session.send("Take a moment.... Check your watch and note the time. For the next 60 seconds try to focus all your attention on your breathing. Just your breathing. Just for one minute. Keep your eyes open and breathe normally. Your mind will start to wander but be ready to catch it and refocus on your breathing.");
-            */   session.send({
-               attachments: [
-                            {
-                               contentType: 'image/gif',
-                               contentUrl: 'https://media.giphy.com/media/3o6vXJZlfNfAYysryo/giphy.gif',
-                               name: 'Stress'
-                            }
-                          ]
-                        });
-
-              }
-            ]);
-
-            bot.dialog('addiction', [
-                function (session) {
-                  session.send("There are many ways to get help and support for potential substance addictions such as drugs or alcohol issues or behavioural addictions such as food or gambling.");
-                  session.send("Once you have identified that you are struggling with a dependency or an addiction it is strongly advised not to prolong seeking help. This may feel daunting and confusing but it will reduce the impact on your life.");
-                 session.send("Try talking to your partner, family or close friends about your feelings and concerns. It’s possible they are concerned about you already and want to help you get the support you need.");
-
-
-                }
-              ]);
-
-
 // dialog files
 bot.dialog('gad7', require('./gad7'));
-
+bot.dialog('sleep', require('./sleep'));
+bot.dialog('stress', require('./stress'));
+bot.dialog('addiction', require('./addiction'));
+bot.dialog('anxiety', require('./anxiety'));
 
 // bot.dialog('selfhelp', require('./selfhelp'));
