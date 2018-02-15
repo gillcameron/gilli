@@ -26,7 +26,15 @@ function executeQuery(sql, cb) {
     });
 }
 
-
+//JSON from mysql query
+/*
+con.connect(function(err) {
+  if (err) throw err;
+  con.query("SELECT CONCAT(  '[',   GROUP_CONCAT(JSON_OBJECT('userID', userID, 'score', score)),']') FROM gad7userlog;", function (err, result, fields) {
+    if (err) throw err;
+    console.log(result);
+  });
+});*/
 
 //connect to restify server and set port
  var server = restify.createServer();
@@ -36,8 +44,8 @@ function executeQuery(sql, cb) {
 
 // Create chat connector for communicating with the Bot Framework Service
 var connector = new builder.ChatConnector({
-appId: process.env.MICROSOFT_APP_ID,
-appPassword: process.env.MICROSOFT_APP_PASSWORD
+appId:'43e13045-7a4d-448b-9b58-e6929d1c725d',
+appPassword: 'ryjdf68@gaRMXVATX481-^|'
 });
 
 
@@ -70,6 +78,8 @@ var bot = new builder.UniversalBot(connector, [
         session.send("Hello! I'm the InspireBot.");
         console.log(session.userData + " - Username");
         session.beginDialog('askForFeeling');
+
+
     },
 
 
@@ -77,8 +87,10 @@ var bot = new builder.UniversalBot(connector, [
     function (session, results) {
       builder.LuisRecognizer.recognize(results.response, LuisModelUrl,
     function (err, intents, entities) {
+
+
         if (err) {
-          console.log("Some error occurred in calling LUIS");
+          console.log("Error occurred in calling LUIS");
         }
    else {
              switch (intents[0].intent) {

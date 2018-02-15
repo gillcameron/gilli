@@ -15,6 +15,7 @@
     "apiai": "^4.0.3",
     "botbuilder": "^3.13.1",
     "botbuilder-azure": "^3.0.4",
+    "botbuilder-vega": "^1.0.0",
     "dotenv-extended": "^2.0.1",
     "express": "^4.16.2",
     "formflowbotbuilder": "^0.1.4",
